@@ -2,6 +2,7 @@
 set(SNAPFLAKES_TEST_SOURCES
     test_log.cpp
     test_stdplus_exec.cpp
+    test_stdplus_streamifex_broadcast.cpp
 )
 
 string(REPLACE ".cpp" "" BASENAMES_SNAPFLAKES_TESTS "${SNAPFLAKES_TEST_SOURCES}")
