@@ -73,11 +73,6 @@ public:
 
     constexpr basic_any_completions() noexcept = default;
 
-    template<typename T>
-    requires (!std::same_as<std::remove_cvref_t<T>, basic_any_completions>)
-    constexpr explicit basic_any_completions(T &&) noexcept {
-    }
-
     constexpr basic_any_completions(const basic_any_completions &) = default;
 
     constexpr basic_any_completions &operator=(const basic_any_completions &) = default;
@@ -177,13 +172,15 @@ public:
     };
 
     template<typename Recr>
-    constexpr auto connect(Recr rec) & noexcept {
-        return operation_state_t<std::remove_cvref_t<Recr>>(std::move(rec), *this);
+    requires stdexec::receiver<Recr>
+    constexpr auto connect(Recr &&rec) & noexcept {
+        return operation_state_t<std::remove_cvref_t<Recr>>(std::forward<Recr>(rec), *this);
     }
 
     template<typename Recr>
-    constexpr auto connect(Recr rec) && noexcept {
-        return operation_state_t<std::remove_cvref_t<Recr>>(std::move(rec), std::move(*this));
+    requires stdexec::receiver<Recr>
+    constexpr auto connect(Recr &&rec) && noexcept {
+        return operation_state_t<std::remove_cvref_t<Recr>>(std::forward<Recr>(rec), std::move(*this));
     }
 
     constexpr env_t get_env() const noexcept {
@@ -204,148 +201,6 @@ private:
     std::optional<error_t> error_ = std::nullopt;
     bool stopped_ = false;
     env_t env_;
-};
-
-template<template<typename> typename Buffer, typename UpSnd, typename Env>
-requires concepts::able_to_cache_as_list<Buffer, stdexec::value_types_of_t<UpSnd, Env>>
-class basic_completions_cache_list : public stdplus::utils::immoveable {
-    using value_t = stdexec::value_types_of_t<UpSnd, Env>;
-    using error_t = stdexec::error_types_of_t<UpSnd, Env>;
-
-public:
-    using sender_concept = stdexec::sender_t;
-    using completion_signatures_t = stdexec::completion_signatures_of_t<UpSnd, Env>;
-    using snd_env_t = std::remove_cvref_t<decltype(stdexec::get_env(std::declval<UpSnd>()))>;
-
-    struct cache_item_t {
-
-        template<typename... Args>
-        constexpr cache_item_t(size_t ref_cnt, Args &&...args) : ref_cnt_(ref_cnt), value_(to_variant<value_t>(std::forward<Args>(args)...)) {
-        }
-
-        size_t ref_cnt_;
-        value_t value_;
-    };
-
-    template<typename SndEnv>
-    requires std::constructible_from<SndEnv, snd_env_t>
-    constexpr explicit basic_completions_cache_list(SndEnv &&env) noexcept : env_(std::forward<SndEnv>(env)) {
-    }
-
-    ~basic_completions_cache_list() = default;
-
-    template<typename... Args>
-    constexpr void emplace_back_value(size_t ref_cnt, Args &&...args) noexcept {
-        if (has_error() || has_stopped()) {
-            return;
-        }
-        buffer_.emplace_back(ref_cnt, std::forward<Args>(args)...);
-    }
-
-    constexpr bool has_value_front() const noexcept {
-        return buffer_.has_value_front() && !has_error() && !has_stopped();
-    }
-
-    template<typename... Args>
-    constexpr void store_error(Args &&...args) noexcept {
-        error_.emplace(utils::to_variant<error_t>(std::forward<Args>(args)...));
-    }
-
-    constexpr bool has_error() const noexcept {
-        return error_.has_value();
-    }
-
-    constexpr void store_stopped() noexcept {
-        stopped_ = true;
-    }
-
-    constexpr bool has_stopped() const noexcept {
-        return stopped_;
-    }
-
-    constexpr bool is_full() const noexcept {
-        return buffer_.is_full();
-    }
-
-    template<typename Recr>
-    struct operation_state_t {
-        constexpr explicit operation_state_t(Recr &&rec, basic_completions_cache_list *completions) noexcept : rec_(std::move(rec)), completions_(completions) {
-        }
-
-        constexpr ~operation_state_t() = default;
-
-        constexpr void start() noexcept {
-            if (completions_->error_.has_value()) {
-                utils::basic_set_any_error(std::move(rec_), completions_->error_.value());
-                return;
-            }
-
-            if (completions_->stopped_) {
-                stdexec::set_stopped(std::move(rec_));
-                return;
-            }
-
-            __try_set_value();
-        }
-
-    private:
-        void __try_set_value() {
-            auto &cache_list = completions_->buffer_;
-            cache_item_t &fr = cache_list.front();
-            --fr.ref_cnt_;
-            if (fr.ref_cnt_ > 0) {
-                utils::basic_set_any_value(std::move(rec_), fr.value_);
-            } else {
-                utils::basic_set_any_value(std::move(rec_), std::move(fr.value_));
-                // The completions_ ptr may be set to nullptr after set_value done, so we need to use pre binded cache_list to pop_front.
-                // In general, we should not make any use of the member inside operation state after completion signals done.
-                cache_list.pop_front();
-            }
-        }
-
-        Recr rec_;
-        basic_completions_cache_list *completions_;
-    };
-
-    struct front_sender_t {
-        using sender_concept = stdexec::sender_t;
-
-        constexpr explicit front_sender_t(basic_completions_cache_list *completions) noexcept : completions_(completions) {
-        }
-
-        constexpr ~front_sender_t() = default;
-
-        template<typename Recr>
-        constexpr auto connect(Recr rec) const noexcept {
-            return operation_state_t<Recr>(std::move(rec), completions_);
-        }
-
-        constexpr snd_env_t get_env() const noexcept {
-            return completions_->env_;
-        }
-
-        static consteval completion_signatures_t get_completion_signatures() noexcept {
-            return {};
-        }
-
-        template<typename ENV>
-        static consteval completion_signatures_t get_completion_signatures() noexcept {
-            return {};
-        }
-
-    private:
-        basic_completions_cache_list *completions_;
-    };
-
-    constexpr front_sender_t create_front_sender() noexcept {
-        return front_sender_t(this);
-    }
-
-private:
-    Buffer<cache_item_t> buffer_;
-    std::optional<error_t> error_ = std::nullopt;
-    bool stopped_ = false;
-    snd_env_t env_;
 };
 
 template<typename Completions>

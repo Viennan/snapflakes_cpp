@@ -405,20 +405,20 @@ class broadcast_branch_stream {
 
             template<typename... Args>
             constexpr void set_value(Args &&...args) noexcept {
-                completion_t completion(get_env());
+                completion_t completion;
                 completion.store_value(std::forward<Args>(args)...);
                 self_->finish_upstream(std::move(completion));
             }
 
             template<typename... Args>
             constexpr void set_error(Args &&...args) noexcept {
-                completion_t completion(get_env());
+                completion_t completion;
                 completion.store_error(std::forward<Args>(args)...);
                 self_->finish_upstream(std::move(completion));
             }
 
             constexpr void set_stopped() noexcept {
-                completion_t completion(get_env());
+                completion_t completion;
                 completion.store_stopped();
                 self_->finish_upstream(std::move(completion));
             }

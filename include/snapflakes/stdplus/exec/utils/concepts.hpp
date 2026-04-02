@@ -31,16 +31,6 @@ concept mutex = requires(Mutex m) {
     { m.unlock() };
 };
 
-template<template<typename> typename Buffer, typename T>
-concept able_to_cache_as_list = requires(Buffer<T>&& buffer, T&& value) {
-    buffer.push_back(std::forward<T>(value));
-    buffer.emplace_back(std::forward<T>(value));
-    std::is_same_v<std::remove_cvref_t<T>, std::remove_cvref_t<decltype(buffer.front())>>;
-    { buffer.pop_front() };
-    { buffer.has_value_front() };
-    { buffer.is_full()} -> std::same_as<bool>;
-};
-
 }
 }
 }
