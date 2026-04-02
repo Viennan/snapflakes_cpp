@@ -5,7 +5,7 @@
 
 namespace snapflakes {
 namespace stdplus {
-namespace utilities {
+namespace utils {
 
 template<typename F>
 struct ptr_as_function {
