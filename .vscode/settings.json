@@ -1,0 +1,17 @@
+{
+    "cmake.sourceDirectory": "${userHome}/workspace/repos/snapflakes_cpp",
+    "cmake.ignoreCMakeListsMissing": true,
+    "clangd.path": "/usr/bin/clangd",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/out/build/dev_debug_avplus",
+        "--background-index",
+        "--clang-tidy",
+        "--completion-style=detailed",
+        "--pch-storage=memory",
+        "--header-insertion=never",
+        "--log=info",
+        "-j=10",
+        "--all-scopes-completion",
+        "--function-arg-placeholders=true"
+    ]
+}

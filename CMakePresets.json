@@ -1,0 +1,40 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "dev_debug_default",
+            "displayName": "Dev Debug Default",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CPM_SOURCE_CACHE": "${sourceDir}/build/cpm_cache",
+                "SNAPFLAKES_BUILD_TESTS": "ON",
+                "SNAPFLAKES_ACTIVE_LOG_LEVEL": "trace",
+                "SNAPFLAKES_USE_SPDLOG": "ON",
+                "SNAPFLAKES_SPDLOG_VERSION": "1.17.0"
+            }
+        },
+        {
+            "name": "dev_debug_avplus",
+            "displayName": "Dev Debug AVPlus",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CPM_SOURCE_CACHE": "${sourceDir}/build/cpm_cache",
+                "SNAPFLAKES_BUILD_TESTS": "ON",
+                "SNAPFLAKES_ACTIVE_LOG_LEVEL": "trace",
+                "SNAPFLAKES_USE_SPDLOG": "ON",
+                "SNAPFLAKES_SPDLOG_VERSION": "1.17.0"
+            }
+        }
+    ]
+}

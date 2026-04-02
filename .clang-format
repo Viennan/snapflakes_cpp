@@ -1,0 +1,22 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 200
+AllowShortFunctionsOnASingleLine: None
+AccessModifierOffset: -4
+AlwaysBreakTemplateDeclarations: Yes
+SpaceAfterTemplateKeyword: false
+RequiresClausePosition: OwnLine
+IndentRequiresClause: false
+AllowShortBlocksOnASingleLine: Never
+# 控制括号前的空格
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterFunctionDefinitionName: false
+  AfterFunctionDeclarationName: false
+  AfterIfMacros:   true
+  AfterOverloadedOperator: false
+  AfterRequiresInClause: true
+  AfterRequiresInExpression: false
+  BeforeNonEmptyParentheses: false

@@ -1,0 +1,30 @@
+{
+    "image": "${localEnv:USER}/snapflakes_cpp/av_codec_ffmpeg7.1.3:latest",
+    "name": "snapflakes_cpp-av_codec_ffmpeg7.1.3",
+    "workspaceFolder": "/home/${localEnv:USER}/workspace/repos/snapflakes_cpp",
+    "hostRequirements": { "gpu": true },
+    "remoteUser": "${localEnv:USER}",
+    "containerUser": "${localEnv:USER}",
+    "runArgs": [
+        "--runtime=nvidia"
+    ],
+    "containerEnv": {
+        "NVIDIA_VISIBLE_DEVICES": "all",
+        "NVIDIA_DRIVER_CAPABILITIES": "all"
+    },
+    "mounts": [
+        "type=bind,source=${localEnv:HOME}/.ssh,target=/home/${localEnv:USER}/.ssh",
+        "type=bind,source=${localEnv:HOME}/.gitconfig,target=/home/${localEnv:USER}/.gitconfig",
+        "type=bind,source=${localEnv:HOME}/workspace,target=/home/${localEnv:USER}/workspace"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools-extension-pack",
+                "xaver.clang-format",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "marscode.marscode-extension"
+            ]
+        }
+    }
+}

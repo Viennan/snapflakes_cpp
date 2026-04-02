@@ -1,0 +1,5 @@
+.cache
+build
+out
+.DS_Store
+.idea
